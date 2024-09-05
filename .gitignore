@@ -1,0 +1,12 @@
+# Ignorar arquivos e pastas gerados pelo PyInstaller
+/build/
+/*.spec
+
+# Ignorar outros arquivos temporários ou desnecessários
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.db
+.DS_Store
