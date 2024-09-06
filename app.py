@@ -13,17 +13,26 @@ class Transacao:
 
 class Deposito(Transacao):
     def __init__(self, valor: float):
-        self.valor = valor
+        super().__init__('deposito', valor, 0)
 
     def registrar(self, conta: 'Conta'):
         conta.saldo += self.valor
+        self.saldo_atual = conta.saldo
+        conta.extrato.append(self)
 
 class Saque(Transacao):
     def __init__(self, valor: float):
-        self.valor = valor
+        super().__init__('saque', valor, 0)
 
     def registrar(self, conta: 'Conta'):
+        if self.valor > conta.limite:
+            return False, "O saque excede o limite"
+        if self.valor > conta.saldo:
+            return False, "Saldo insuficiente"
         conta.saldo -= self.valor
+        self.saldo_atual = conta.saldo
+        conta.extrato.append(self)
+        return True, "Saque realizado com sucesso"
 
 class Conta:
 
@@ -61,6 +70,7 @@ class Conta:
         cls.agencia += 1
         return conta
     
+
 class Historico:
     def __init__(self):
         self.transacoes = []
@@ -167,8 +177,6 @@ class BancoApp:
         Label(self.frame, text="Endereço",bg="#2f3031", fg = "white", font=('Arial', 14)).place(relx=0.425, rely=0.45)
         self.Endereco = Entry(self.frame)
         self.Endereco.place(relx=0.425, rely=0.55)
-
-        
 
         Button(self.frame, text="Salvar", bg='#2ac70e',font=('Arial',10,'bold'),command=self.salvar_cliente).place(relx=0.8, rely=0.85)
         # Vinculando o Enter para salvar o usuário
@@ -363,27 +371,26 @@ class BancoApp:
 
         try:
             if saqueEntry:
-                saque = float(saqueEntry)
-                sucesso, mensagem = conta.sacar(saque)
+                saque = Saque(float(saqueEntry))  # Cria um objeto de Saque
+                sucesso, mensagem = saque.registrar(conta)  # Usa o método registrar da classe Saque
                 if not sucesso:
                     return messagebox.showinfo("Erro", mensagem)
                 self.entrySaque.delete(0, END)
 
             if depositoEntry:
-                deposito = float(depositoEntry)
-                sucesso, mensagem = conta.depositar(deposito)
-                if not sucesso:
-                    return messagebox.showinfo("Erro", mensagem)
+                deposito = Deposito(float(depositoEntry))  # Cria um objeto de Deposito
+                deposito.registrar(conta)  # Usa o método registrar da classe Deposito
                 self.entryDeposito.delete(0, END)
 
-            
+            # Atualiza o saldo
             self.labelSaldo.config(text=f"Saldo: R$ {conta.saldo:.2f}")
 
-            # Atualiza o extrato
-            self.tree.insert('', 'end', values=(f"R$ {saque:.2f}" if saqueEntry else '', f"R$ {deposito:.2f}" if depositoEntry else '', f"R$ {conta.saldo:.2f}", datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+            # Atualiza o extrato no Treeview
+            self.tree.insert('', 'end', values=(f"R$ {saque.valor:.2f}" if saqueEntry else '', f"R$ {deposito.valor:.2f}" if depositoEntry else '', f"R$ {conta.saldo:.2f}", datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
 
         except ValueError:
             messagebox.showinfo("Erro", "Digite valores numéricos!")
+
         
 
 
