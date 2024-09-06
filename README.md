@@ -3,5 +3,5 @@ Diferente do projeto anterior, onde dicionários eram usados para armezenaros da
 
 A ideia é a mesma de antes usei o tkinter para gerar uma interface que simule um Aplicativo de Banco
 
-#OBS
+# Observação
 Adicionei na pasta dist um Executável, para quem quiser testar o app sem precisar executar o arquivo app.py
